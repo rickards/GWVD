@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -36,7 +38,7 @@ public class Generator extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		final Stage stage = new Stage(StageStyle.TRANSPARENT); 
         Group rootGroup = new Group();
-        Scene scene = new Scene(rootGroup, 600, 350, Color.TRANSPARENT);
+        Scene scene = new Scene(rootGroup, 620, 400, Color.TRANSPARENT);
         stage.setScene(scene);
         stage.centerOnScreen();
         stage.show();
@@ -53,7 +55,7 @@ public class Generator extends Application{
             stage.setY(me.getScreenY() - initY);
         });
         
-        Rectangle rect2 = new Rectangle(600,350);
+        Rectangle rect2 = new Rectangle(620,360);
         rect2.setFill(Color.ANTIQUEWHITE);
         
         Text title = new Text("GENERATOR WORKLOAD VULNERABILITY DATA");
@@ -103,35 +105,29 @@ public class Generator extends Application{
         projecthbox.getChildren().addAll(projectvbox1,projectvbox2);
         TitledPane t3 = new TitledPane("Projects", projecthbox);
         
-        VBox vulnerabilityvbox1 = new VBox();
-        vulnerabilityvbox1.setSpacing(10);
-        CheckBox vulnerabilitycb1 = new CheckBox("Mozilla");
-        CheckBox vulnerabilitycb2 = new CheckBox("Kernel");
-        CheckBox vulnerabilitycb3 = new CheckBox("Xen Hipervisor");
-        CheckBox vulnerabilitycb4 = new CheckBox("Httpd");
-        CheckBox vulnerabilitycb5 = new CheckBox("Httpd");
-        vulnerabilityvbox1.getChildren().addAll(vulnerabilitycb1, vulnerabilitycb2, vulnerabilitycb3, vulnerabilitycb4, vulnerabilitycb5);
-        
-        CheckBox vulnerabilitycb6 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb7 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb8 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb9 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb10 = new CheckBox("Glibc");
-        VBox vulnerabilityvbox2 = new VBox();
-        vulnerabilityvbox2.setSpacing(10);
-        vulnerabilityvbox2.getChildren().addAll(vulnerabilitycb6, vulnerabilitycb7, vulnerabilitycb8, vulnerabilitycb9, vulnerabilitycb10);
-        
-        CheckBox vulnerabilitycb11 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb12 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb13 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb14 = new CheckBox("Glibc");
-        CheckBox vulnerabilitycb15 = new CheckBox("Glibc");
-        VBox vulnerabilityvbox3 = new VBox();
-        vulnerabilityvbox3.setSpacing(10);
-        vulnerabilityvbox3.getChildren().addAll(vulnerabilitycb11, vulnerabilitycb12, vulnerabilitycb13, vulnerabilitycb14, vulnerabilitycb15);
+        String[] vulnerabilities = {"all","AuthAlgorithms","Bypass","CrossSiteScripting","CSRF","DenialOfService","DirectoryTraversal","Doubt","ExecuteCode","FileInclusion","GainInformation","GainPrivileges","Httpresponsesplitting","InformationDisclosure","InputHandling","MemoryCorruption","ObtainInformation","Overflow","Phishing","RaceCondition","Spoofing","XMLInjection"};
+        ArrayList<VBox> vboxes = new ArrayList<>();
+        vboxes.add(new VBox(10));
+        vboxes.add(new VBox(10));
+        vboxes.add(new VBox(10));
+        int i_hbox=0;
+        for (int i = 0; i < vulnerabilities.length; i++) {
+			vboxes.get(i_hbox).getChildren().add(new CheckBox(vulnerabilities[i]));
+			if(i%(vulnerabilities.length/3)==0 && i!=0) i_hbox++;
+		}
+        CheckBox all = (CheckBox) vboxes.get(0).getChildren().get(0);
+        all.setOnMouseClicked((MouseEvent me) -> {
+        	boolean value = all.isSelected();
+        	for (VBox vBox : vboxes) {
+				for (int i = 0; i < vBox.getChildren().size(); i++) {
+					((CheckBox) vBox.getChildren().get(i)).setDisable(value);
+				}
+			}
+        	all.setDisable(false);
+        });
         
         HBox vulnerabilityhbox = new HBox(10);
-        vulnerabilityhbox.getChildren().addAll(vulnerabilityvbox1, vulnerabilityvbox2, vulnerabilityvbox3);
+        vulnerabilityhbox.getChildren().addAll(vboxes);
         TitledPane t4 = new TitledPane("Vulnerabilities", vulnerabilityhbox);
         
         Accordion accordion = new Accordion();
@@ -139,8 +135,6 @@ public class Generator extends Application{
         accordion.getPanes().add(t2);
         accordion.getPanes().add(t3);
         accordion.getPanes().add(t4);
-        accordion.setMinSize(100, 100);
-        accordion.setPrefSize(100, 270);
         mainVbox.getChildren().addAll(accordion);
         
         rootGroup.getChildren().addAll(rect2,mainVbox);
