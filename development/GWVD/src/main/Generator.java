@@ -3,11 +3,12 @@ package main;
 import java.util.ArrayList;
 
 import javafx.application.Application;
-import javafx.geometry.Insets;
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TitledPane;
@@ -17,6 +18,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -38,7 +42,7 @@ public class Generator extends Application{
 	public void start(Stage primaryStage) throws Exception {
 		final Stage stage = new Stage(StageStyle.TRANSPARENT); 
         Group rootGroup = new Group();
-        Scene scene = new Scene(rootGroup, 620, 400, Color.TRANSPARENT);
+        Scene scene = new Scene(rootGroup, 500, 420, Color.TRANSPARENT);
         stage.setScene(scene);
         stage.centerOnScreen();
         stage.show();
@@ -55,18 +59,36 @@ public class Generator extends Application{
             stage.setY(me.getScreenY() - initY);
         });
         
-        Rectangle rect2 = new Rectangle(620,360);
-        rect2.setFill(Color.ANTIQUEWHITE);
+        Rectangle rect2 = new Rectangle(500,300);
+        //rect2.setFill(Color.ANTIQUEWHITE);
+        rect2.setFill(new RadialGradient(-0.3, 135, 0.5, 0.5, 1, true, CycleMethod.NO_CYCLE, new Stop[]{
+                new Stop(0, Color.DARKGRAY),
+                new Stop(1, Color.BLACK)
+            }));
         
         Text title = new Text("GENERATOR WORKLOAD VULNERABILITY DATA");
-        title.setFill(Color.DARKOLIVEGREEN);
+        title.setFill(Color.WHITE);
         title.setEffect(new Lighting());
         title.setBoundsType(TextBoundsType.VISUAL);
         title.setFont(Font.font(Font.getDefault().getFamily(), 20));
         
+        Button close = new Button("x");
+        close.setOnAction((ActionEvent event) -> {
+            System.exit(0);
+        });
+        Button min = new Button("_");
+        min.setOnAction((ActionEvent event) -> {
+            stage.setIconified(true);
+        });
+        HBox minclose = new HBox(5);
+        minclose.getChildren().addAll(min,close);
+        minclose.setAlignment(Pos.TOP_RIGHT);
+        minclose.setOpacity(0.9);
+        
         VBox mainVbox = new VBox();
+        mainVbox.getChildren().add(minclose);
         mainVbox.setSpacing(10);
-        mainVbox.setPadding(new Insets(20, 0, 0, 60));
+        //mainVbox.setPadding(new Insets(20, 0, 0, 60));
         mainVbox.setAlignment(Pos.TOP_CENTER);
         mainVbox.getChildren().addAll(title);
         
@@ -135,9 +157,16 @@ public class Generator extends Application{
         accordion.getPanes().add(t2);
         accordion.getPanes().add(t3);
         accordion.getPanes().add(t4);
+        accordion.setOpacity(0.9);
         mainVbox.getChildren().addAll(accordion);
         
-        rootGroup.getChildren().addAll(rect2,mainVbox);
+        Button next = new Button("Go");
+        next.setOpacity(0.9);
+        next.setLayoutX(450);
+        next.setLayoutY(250);
+        
+        rootGroup.setOpacity(0.96);
+        rootGroup.getChildren().addAll(rect2,next,mainVbox);
 	}
 
 }
