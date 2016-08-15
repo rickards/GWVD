@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -28,7 +29,7 @@ import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public class Generator extends Application{
+public class UserInterface extends Application{
 	
     private double initX;
     private double initY;
@@ -167,6 +168,10 @@ public class Generator extends Application{
         
         rootGroup.setOpacity(0.96);
         rootGroup.getChildren().addAll(rect2,next,mainVbox);
+        
+        next.setOnAction((EventHandler<ActionEvent>)me -> {
+        	System.out.println("50 reAIS");
+        });
 	}
 
 }
