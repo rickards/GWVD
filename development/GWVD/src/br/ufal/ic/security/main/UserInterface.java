@@ -131,15 +131,15 @@ public class UserInterface extends Application{
         projecthbox.getChildren().addAll(projectvbox1,projectvbox2);
         TitledPane t3 = new TitledPane("Projects", projecthbox);
         
-        String[] vulnerabilities = {"all","AuthAlgorithms","Bypass","CrossSiteScripting","CSRF","DenialOfService","DirectoryTraversal","Doubt","ExecuteCode","FileInclusion","GainInformation","GainPrivileges","Httpresponsesplitting","InformationDisclosure","InputHandling","MemoryCorruption","ObtainInformation","Overflow","Phishing","RaceCondition","Spoofing","XMLInjection"};
+        String[] vulnerabilities = {"all","AuthAlgorithms","Bypass","CrossSiteScripting","CSRF","DenialOfService","DirectoryTraversal","Doubt","ExecuteCode","FileInclusion","GainInformation","GainPrivileges","Httpresponsesplitting","InformationDisclosure","InputHandling","MemoryCorruption","ObtainInformation","Overflow","Phishing","RaceCondition","Spoofing","XMLInjection","Undefined"};
         ArrayList<VBox> vboxes = new ArrayList<>();
         vboxes.add(new VBox(10));
         vboxes.add(new VBox(10));
         vboxes.add(new VBox(10));
         int i_hbox=0;
         for (int i = 0; i < vulnerabilities.length; i++) {
+        	if(i%(vulnerabilities.length/3+1)==0 && i!=0) i_hbox++;
 			vboxes.get(i_hbox).getChildren().add(new CheckBox(vulnerabilities[i]));
-			if(i%(vulnerabilities.length/3)==0 && i!=0) i_hbox++;
 		}
         CheckBox all = (CheckBox) vboxes.get(0).getChildren().get(0);
         all.setOnMouseClicked((MouseEvent me) -> {
