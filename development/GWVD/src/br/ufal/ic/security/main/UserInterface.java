@@ -190,7 +190,7 @@ public class UserInterface extends Application{
 				}
 			}
         	Setup.VULNERABILITIES_TYPE = (String[]) name_vulnerabilities.toArray(new String[name_vulnerabilities.size()]);
-        	if(Setup.VULNERABILITIES_TYPE[0].equals("all")) Setup.VULNERABILITIES_TYPE = vulnerabilities;
+        	if(Setup.VULNERABILITIES_TYPE[0].equals("all")) Setup.VULNERABILITIES_TYPE[0]="";
         	if(Setup.PROJECTS.length==0){
         		JOptionPane.showMessageDialog(null, "No project selected!");
         	}

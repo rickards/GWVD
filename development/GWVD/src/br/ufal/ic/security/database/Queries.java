@@ -24,8 +24,10 @@ public class Queries {
 		for (String project : Setup.PROJECTS) {
 			for (String module : Setup.getModules(project)) {
 				String query_no_vul = "SELECT * FROM "+module+" f2s WHERE f2s.Patched=0 and f2s.Occurrence='before' and f2s.ID_Function NOT IN (SELECT distinct tb.ID_Function FROM "+module+" tb, (SELECT * FROM "+module+" WHERE patched=1 AND Occurrence='before') vul WHERE tb.FilePath=vul.FilePath AND tb.NameMethod=vul.NameMethod";
+				String query_vul = "SELECT DISTINCT tb.FilePath,tb.NameMethod";
 				for (String metric : metrics) {
 					query_no_vul+=" AND tb."+metric+"=vul."+metric;
+					query_vul+=",tb."+metric;
 				}
 				query_no_vul+=")";
 				String or_vulnerability=" AND (VULNERABILITIES.V_CLASSIFICATION like '%"+Setup.VULNERABILITIES_TYPE[0]+"%'";
@@ -34,9 +36,11 @@ public class Queries {
 				}
 				or_vulnerability+=")";
 				for (String release : Setup.getReleases(project)) {
-					query_no_vul = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_FUNCTIONS as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME.ID_Functions=MAIN.ID_Function and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID AND "+or_vulnerability+";";
+					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_FUNCTIONS as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME.ID_Functions=MAIN.ID_Function and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID AND "+or_vulnerability+";";
+					String vulnerableQuery = query_vul+",tb.Patched FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS v where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=v.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
+					System.out.println(neutralQuery);
+					System.out.println(vulnerableQuery);
 					//TODO: [...]
-					System.out.println(query_no_vul);
 				}
 			}
 		}

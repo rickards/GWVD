@@ -51,6 +51,7 @@ public class Setup {
 	
 	public static String[] getReleases(String project){
 		HashMap<String, String[]> iterator = buildReleases();
+		if(CROSS_VALIDATION.equals("n fold-validation")) return new String[]{""};
 		return iterator.get(project);
 	}
 	
