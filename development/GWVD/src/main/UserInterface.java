@@ -2,6 +2,8 @@ package main;
 
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
+
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -28,6 +30,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import struct.Setup;
 
 public class UserInterface extends Application{
 	
@@ -117,7 +120,7 @@ public class UserInterface extends Application{
         projectvbox1.setSpacing(10);
         CheckBox projectcb1 = new CheckBox("Mozilla");
         CheckBox projectcb2 = new CheckBox("Kernel");
-        CheckBox projectcb3 = new CheckBox("Xen Hipervisor");
+        CheckBox projectcb3 = new CheckBox("Xen");
         projectvbox1.getChildren().addAll(projectcb1, projectcb2, projectcb3);
         CheckBox projectcb4 = new CheckBox("Httpd");
         CheckBox projectcb5 = new CheckBox("Glibc");
@@ -170,7 +173,26 @@ public class UserInterface extends Application{
         rootGroup.getChildren().addAll(rect2,next,mainVbox);
         
         next.setOnAction((EventHandler<ActionEvent>)me -> {
-        	System.out.println("50 reAIS");
+        	Setup.CROSS_VALIDATION = ((RadioButton) crosstg.getSelectedToggle()).getText();
+        	Setup.GRANULARITY = ((RadioButton) granularitytg.getSelectedToggle()).getText();
+        	ArrayList<String> projects = new ArrayList<>(5);
+        	if(projectcb1.isSelected()) projects.add(projectcb1.getText());
+        	if(projectcb2.isSelected()) projects.add(projectcb2.getText());
+        	if(projectcb3.isSelected()) projects.add(projectcb3.getText());
+        	if(projectcb4.isSelected()) projects.add(projectcb4.getText());
+        	if(projectcb5.isSelected()) projects.add(projectcb5.getText());
+        	Setup.PROJECTS = (String[]) projects.toArray(new String[projects.size()]);
+        	if(Setup.PROJECTS.length==0) JOptionPane.showMessageDialog(null, "None project selected!");
+        	ArrayList<String> name_vulnerabilities = new ArrayList<>();
+        	for (VBox vBox : vboxes) {
+				for (int i = 0; i < vBox.getChildren().size(); i++) {
+					CheckBox iterator = ((CheckBox) vBox.getChildren().get(i));
+					if(iterator.isSelected()&&!iterator.isDisable()) name_vulnerabilities.add(iterator.getText());
+				}
+			}
+        	Setup.VULNERABILITIES_TYPE = (String[]) name_vulnerabilities.toArray(new String[name_vulnerabilities.size()]);
+        	if(Setup.VULNERABILITIES_TYPE.length==0) JOptionPane.showMessageDialog(null, "None vulnerability selected!");
+        	else if(Setup.VULNERABILITIES_TYPE[0].equals("all")) Setup.VULNERABILITIES_TYPE = vulnerabilities;
         });
 	}
 
