@@ -1,4 +1,4 @@
-package struct;
+package br.ufal.ic.security.struct;
 
 import java.util.ArrayList;
 import java.util.HashMap;

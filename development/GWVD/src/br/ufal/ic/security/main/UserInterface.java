@@ -1,9 +1,10 @@
-package main;
+package br.ufal.ic.security.main;
 
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
+import br.ufal.ic.security.struct.Setup;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -30,7 +31,6 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import struct.Setup;
 
 public class UserInterface extends Application{
 	
@@ -182,7 +182,6 @@ public class UserInterface extends Application{
         	if(projectcb4.isSelected()) projects.add(projectcb4.getText());
         	if(projectcb5.isSelected()) projects.add(projectcb5.getText());
         	Setup.PROJECTS = (String[]) projects.toArray(new String[projects.size()]);
-        	if(Setup.PROJECTS.length==0) JOptionPane.showMessageDialog(null, "None project selected!");
         	ArrayList<String> name_vulnerabilities = new ArrayList<>();
         	for (VBox vBox : vboxes) {
 				for (int i = 0; i < vBox.getChildren().size(); i++) {
@@ -191,8 +190,15 @@ public class UserInterface extends Application{
 				}
 			}
         	Setup.VULNERABILITIES_TYPE = (String[]) name_vulnerabilities.toArray(new String[name_vulnerabilities.size()]);
-        	if(Setup.VULNERABILITIES_TYPE.length==0) JOptionPane.showMessageDialog(null, "None vulnerability selected!");
-        	else if(Setup.VULNERABILITIES_TYPE[0].equals("all")) Setup.VULNERABILITIES_TYPE = vulnerabilities;
+        	if(Setup.VULNERABILITIES_TYPE[0].equals("all")) Setup.VULNERABILITIES_TYPE = vulnerabilities;
+        	if(Setup.PROJECTS.length==0){
+        		JOptionPane.showMessageDialog(null, "No project selected!");
+        	}
+        	else if(Setup.VULNERABILITIES_TYPE.length==0){
+        		JOptionPane.showMessageDialog(null, "No vulnerability selected!");
+        	}
+        	else rootGroup.getChildren().removeAll(next, mainVbox);
+
         });
 	}
 
