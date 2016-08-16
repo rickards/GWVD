@@ -98,9 +98,9 @@ public class UserInterface extends Application{
         
         VBox granularitybox = new VBox(10);
         ToggleGroup granularitytg = new ToggleGroup();
-        RadioButton granularityrb1 = new RadioButton("Files");
+        RadioButton granularityrb1 = new RadioButton("FILES");
         granularityrb1.setToggleGroup(granularitytg);
-        RadioButton granularityrb2 = new RadioButton("Functions");
+        RadioButton granularityrb2 = new RadioButton("FUNCTIONS");
         granularityrb2.setToggleGroup(granularitytg);
         granularityrb2.setSelected(true);
         granularitybox.getChildren().addAll(granularityrb1,granularityrb2);
