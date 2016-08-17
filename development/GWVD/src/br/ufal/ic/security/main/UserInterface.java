@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
+import br.ufal.ic.security.database.Queries;
 import br.ufal.ic.security.struct.Setup;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
@@ -49,7 +50,6 @@ public class UserInterface extends Application{
         Scene scene = new Scene(rootGroup, 500, 420, Color.TRANSPARENT);
         stage.setScene(scene);
         stage.centerOnScreen();
-        stage.show();
         
         //when mouse button is pressed, save the initial position of screen
         rootGroup.setOnMousePressed((MouseEvent me) -> {
@@ -197,9 +197,14 @@ public class UserInterface extends Application{
         	else if(Setup.VULNERABILITIES_TYPE.length==0){
         		JOptionPane.showMessageDialog(null, "No vulnerability selected!");
         	}
-        	else rootGroup.getChildren().removeAll(next, mainVbox);
+        	else{
+        		rootGroup.getChildren().removeAll(next, mainVbox);
+        		Queries executor = new Queries();
+        		executor.buildingQuery();
+        	}
 
         });
+        stage.show();
 	}
 
 }

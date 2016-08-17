@@ -11,20 +11,33 @@ import br.ufal.ic.security.struct.Setup;
 public class Queries {
 	
 	private String[] metrics;
+	private String id_table;
+	
+	public Queries() {
+		buildingMetrics();
+	}
 	
 	//TODO: Refactoring: this method not supposed to be here and yes in setups
-	public void buildingMetrics(){
+	private void buildingMetrics(){
 		String[] metrics_functions = {"AltCountLineCode","CountLine","CountLineCode","CountLineCodeExe","CountLineCodeDecl","Cyclomatic","CyclomaticModified","CyclomaticStrict","Knots","Essential","MaxEssentialKnots","MinEssentialKnots","CountPath","AltCountLineComment","CountLineComment","RatioCommentToCode","CountStmt","CountStmtExe","CountStmtDecl","CountStmtEmpty","CountLineBlank","CountLineInactive","CountSemicolon","MaxNesting","CountInput","CountOutput","CountLinePreprocessor","Patched"};
 		String[] metrics_files = {"AltAvgLineBlank","AltAvgLineComment","AltCountLineCode","AvgCyclomatic","AvgCyclomaticStrict","AvgLine","AvgLineCode","CountLineBlank","CountLineCodeDecl","CountLineComment","CountLinePreprocessor","CountStmt","CountStmtEmpty","MaxCyclomaticModified","MaxEssential","RatioCommentToCode","SumCyclomaticModified","SumEssential","AltCountLineComment","AvgCyclomaticModified","AvgEssential","AvgLineBlank","AvgLineComment","CountDeclClass","CountDeclFunction","CountLine","CountLineCode","CountLineCodeExe","CountLineInactive","CountSemicolon","CountStmtDecl","CountStmtExe","MaxCyclomatic","MaxCyclomaticStrict","MaxNesting","SumCyclomatic","SumCyclomaticStrict","CountPath","FanIn","FanOut","AvgFanIn","AvgFanOut","MaxFanIn","MaxFanOut","AvgMaxNesting","SumMaxNesting","MaxMaxNesting","HK","DIT","NOC","CBC","RFC","CBO","LCOM","Patched"};
-		if(Setup.GRANULARITY.equals("FUNCTIONS")) metrics = metrics_functions;
-		if(Setup.GRANULARITY.equals("FILES")) metrics = metrics_files;
+		if(Setup.GRANULARITY.equals("FUNCTIONS")){
+			metrics = metrics_functions;
+			id_table = "ID_Function";
+		}
+		if(Setup.GRANULARITY.equals("FILES")){
+			metrics = metrics_files;
+			id_table = "ID_File";
+		}
 	}
 	
 	public void buildingQuery(){
 		for (String project : Setup.PROJECTS) {
 			for (String module : Setup.getModules(project)) {
-				String query_no_vul = "SELECT * FROM "+module+" f2s WHERE f2s.Patched=0 and f2s.Occurrence='before' and f2s.ID_Function NOT IN (SELECT distinct tb.ID_Function FROM "+module+" tb, (SELECT * FROM "+module+" WHERE patched=1 AND Occurrence='before') vul WHERE tb.FilePath=vul.FilePath AND tb.NameMethod=vul.NameMethod";
-				String query_vul = "SELECT DISTINCT tb.FilePath,tb.NameMethod";
+				String query_no_vul = "SELECT * FROM "+module+" f2s WHERE f2s.Patched=0 and f2s.Occurrence='before' and f2s."+id_table+" NOT IN (SELECT distinct tb."+id_table+" FROM "+module+" tb, (SELECT * FROM "+module+" WHERE patched=1 AND Occurrence='before') vul WHERE tb.FilePath=vul.FilePath";
+				String query_vul = "SELECT DISTINCT tb.FilePath";
+				if(Setup.GRANULARITY.equals("Functions")) query_no_vul+=" AND tb.NameMethod=vul.NameMethod";
+				if(Setup.GRANULARITY.equals("Functions")) query_vul+=",tb.NameMethod";
 				for (String metric : metrics) {
 					query_no_vul+=" AND tb."+metric+"=vul."+metric;
 					query_vul+=",tb."+metric;
@@ -36,8 +49,8 @@ public class Queries {
 				}
 				or_vulnerability+=")";
 				for (String release : Setup.getReleases(project)) {
-					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_FUNCTIONS as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME.ID_Functions=MAIN.ID_Function and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID AND "+or_vulnerability+";";
-					String vulnerableQuery = query_vul+",tb.Patched FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS v where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=v.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
+					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_"+Setup.GRANULARITY+" as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME."+id_table+"s=MAIN."+id_table+" and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID "+or_vulnerability+";";
+					String vulnerableQuery = query_vul+" FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS VULNERABILITIES where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=VULNERABILITIES.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
 					System.out.println(neutralQuery);
 					System.out.println(vulnerableQuery);
 					//TODO: [...]
