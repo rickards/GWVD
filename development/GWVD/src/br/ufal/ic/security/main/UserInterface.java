@@ -1,5 +1,6 @@
 package br.ufal.ic.security.main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -33,6 +34,7 @@ import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+@SuppressWarnings("restriction")
 public class UserInterface extends Application{
 	
     private double initX;
@@ -200,7 +202,14 @@ public class UserInterface extends Application{
         	else{
         		rootGroup.getChildren().removeAll(next, mainVbox);
         		Queries executor = new Queries();
-        		executor.buildingQuery();
+        		new Thread(()->{
+        			try {
+						executor.buildingQuery();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}        			
+        		}).start();
         	}
 
         });

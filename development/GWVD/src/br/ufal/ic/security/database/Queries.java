@@ -1,9 +1,11 @@
 package br.ufal.ic.security.database;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.LinkedHashSet;
 
 import br.ufal.ic.security.struct.Instance;
 import br.ufal.ic.security.struct.Setup;
@@ -31,7 +33,7 @@ public class Queries {
 		}
 	}
 	
-	public void buildingQuery(){
+	public void buildingQuery() throws IOException{
 		for (String project : Setup.PROJECTS) {
 			for (String module : Setup.getModules(project)) {
 				String query_no_vul = "SELECT * FROM "+module+" f2s WHERE f2s.Patched=0 and f2s.Occurrence='before' and f2s."+id_table+" NOT IN (SELECT distinct tb."+id_table+" FROM "+module+" tb, (SELECT * FROM "+module+" WHERE patched=1 AND Occurrence='before') vul WHERE tb.FilePath=vul.FilePath";
@@ -49,21 +51,24 @@ public class Queries {
 				}
 				or_vulnerability+=")";
 				for (String release : Setup.getReleases(project)) {
-					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_"+Setup.GRANULARITY+" as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME."+id_table+"s=MAIN."+id_table+" and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID "+or_vulnerability+";";
+					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_"+Setup.GRANULARITY+" as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME."+id_table+"=MAIN."+id_table+" and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID "+or_vulnerability+";";
 					String vulnerableQuery = query_vul+" FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS VULNERABILITIES where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=VULNERABILITIES.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
 					System.out.println(neutralQuery);
 					System.out.println(vulnerableQuery);
+					executeQuery(neutralQuery);
+					executeQuery(vulnerableQuery);
 					//TODO: [...]
 				}
 			}
 		}
 	}
 	
-	public LinkedHashSet<Instance> executeQuery(String query){
-		LinkedHashSet<Instance> instances = new LinkedHashSet<>(); 
+	public void executeQuery(String query) throws IOException{
+		BufferedWriter bw = new BufferedWriter(new FileWriter("/home/rique/output.csv", true));
+		StringBuilder instances = new StringBuilder();
 		java.sql.Connection conector = null;
         try {
-            conector = DriverManager.getConnection("jdbc:mysql://localhost/security", "root", "admin");
+            conector = DriverManager.getConnection("jdbc:mysql://localhost/software", "root", "admin");
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -76,7 +81,7 @@ public class Queries {
             	for (String metric : metrics) {
             		output.put(metric, rs.getString(metric));
 				}
-            	instances.add(output);
+            	instances.append(output);
             }
             rs.close();
         } catch (Exception e) {
@@ -90,7 +95,8 @@ public class Queries {
                 ex.printStackTrace();
             }
         }
-        return instances;
+		bw.write(instances.toString() + "\n");
+		bw.close();
 	}
 	
 }
