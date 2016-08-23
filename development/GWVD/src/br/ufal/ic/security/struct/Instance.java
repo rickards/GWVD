@@ -20,4 +20,14 @@ public class Instance {
 	public String put(String key, String value){
 		return hash.put(key, value);
 	}
+	
+	@Override
+	public String toString() {
+		String tuple="";
+		for (String iterable : hash.keySet()) {
+			tuple+=hash.get(iterable)+",";
+		}
+		tuple+="&%$";
+		return tuple.replace(",&%$", "\n");
+	}
 }

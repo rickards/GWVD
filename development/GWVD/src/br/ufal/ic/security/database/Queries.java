@@ -1,6 +1,7 @@
 package br.ufal.ic.security.database;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -14,9 +15,18 @@ public class Queries {
 	
 	private String[] metrics;
 	private String id_table;
+	public static String PATH = "/home/rique/GWVD/outputs/";
 	
 	public Queries() {
 		buildingMetrics();
+		File dir = new File(PATH);
+		int i = 2;
+		while (dir.exists()) {
+			if(!PATH.contains("(")) PATH=PATH.replace("outputs", "outputs("+i+")");
+			else PATH=PATH.replace("outputs("+i+++")", "outputs("+i+")");
+			dir = new File(PATH);
+		}
+		dir.mkdirs();
 	}
 	
 	//TODO: Refactoring: this method not supposed to be here and yes in setups
@@ -34,12 +44,17 @@ public class Queries {
 	}
 	
 	public void buildingQuery() throws IOException{
+		int numberQuerys = Setup.numberQuerys();
+		System.out.println("nUMERO DE QUERIES: "+numberQuerys);
+		float count = 0;
 		for (String project : Setup.PROJECTS) {
 			for (String module : Setup.getModules(project)) {
 				String query_no_vul = "SELECT * FROM "+module+" f2s WHERE f2s.Patched=0 and f2s.Occurrence='before' and f2s."+id_table+" NOT IN (SELECT distinct tb."+id_table+" FROM "+module+" tb, (SELECT * FROM "+module+" WHERE patched=1 AND Occurrence='before') vul WHERE tb.FilePath=vul.FilePath";
 				String query_vul = "SELECT DISTINCT tb.FilePath";
-				if(Setup.GRANULARITY.equals("Functions")) query_no_vul+=" AND tb.NameMethod=vul.NameMethod";
-				if(Setup.GRANULARITY.equals("Functions")) query_vul+=",tb.NameMethod";
+				if(Setup.GRANULARITY.equals("FUNCTIONS")){
+					query_no_vul+=" AND tb.NameMethod=vul.NameMethod";
+					query_vul+=",tb.NameMethod";
+				}
 				for (String metric : metrics) {
 					query_no_vul+=" AND tb."+metric+"=vul."+metric;
 					query_vul+=",tb."+metric;
@@ -51,20 +66,25 @@ public class Queries {
 				}
 				or_vulnerability+=")";
 				for (String release : Setup.getReleases(project)) {
-					String neutralQuery = "SELECT VULNERABILITIES.V_CLASSIFICATION,PATCHES.RELEASES,MAIN.* FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_"+Setup.GRANULARITY+" as EXTRA_TIME,("+query_no_vul+") as MAIN where EXTRA_TIME."+id_table+"=MAIN."+id_table+" and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID "+or_vulnerability+";";
+					String neutralQuery = query_vul+" FROM software.VULNERABILITIES as VULNERABILITIES,software.PATCHES as PATCHES, software.EXTRA_TIME_"+Setup.GRANULARITY+" as EXTRA_TIME,("+query_no_vul+") as tb where EXTRA_TIME."+id_table+"=tb."+id_table+" and EXTRA_TIME.P_ID=PATCHES.P_ID and PATCHES.RELEASES LIKE '%"+release+"%' and VULNERABILITIES.V_ID=PATCHES.V_ID "+or_vulnerability+";";
 					String vulnerableQuery = query_vul+" FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS VULNERABILITIES where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=VULNERABILITIES.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
 					System.out.println(neutralQuery);
 					System.out.println(vulnerableQuery);
-					executeQuery(neutralQuery);
-					executeQuery(vulnerableQuery);
-					//TODO: [...]
+					executeQuery(vulnerableQuery,project+"_"+release);
+					executeQuery(neutralQuery,project+"_"+release);
+					count++;
+					Setup.progressOverall=count/numberQuerys;
 				}
 			}
 		}
+		System.out.println("Progressos");
+		System.out.println(Setup.progressOverall);
+		System.out.println(Setup.progressQuery);
 	}
 	
-	public void executeQuery(String query) throws IOException{
-		BufferedWriter bw = new BufferedWriter(new FileWriter("/home/rique/output.csv", true));
+	public void executeQuery(String query, String nameFileOutput) throws IOException{
+		nameFileOutput = nameFileOutput.replace("/", "->");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
 		StringBuilder instances = new StringBuilder();
 		java.sql.Connection conector = null;
         try {
@@ -76,12 +96,17 @@ public class Queries {
             Class.forName("com.mysql.jdbc.Driver");
             java.sql.Statement stm = conector.createStatement();
             ResultSet rs = stm.executeQuery(query);
+            rs.last();
+            int total = rs.getRow();
+            rs.beforeFirst();
+            System.out.println(total);
             while (rs.next()) {
             	Instance output = new Instance(metrics);
             	for (String metric : metrics) {
             		output.put(metric, rs.getString(metric));
 				}
-            	instances.append(output);
+            	instances.append(output.toString());
+            	Setup.progressQuery=rs.getRow()/total;
             }
             rs.close();
         } catch (Exception e) {
@@ -95,8 +120,9 @@ public class Queries {
                 ex.printStackTrace();
             }
         }
-		bw.write(instances.toString() + "\n");
+		bw.write(instances + "\n");
 		bw.close();
 	}
+	
 	
 }

@@ -9,13 +9,17 @@ import br.ufal.ic.security.database.Queries;
 import br.ufal.ic.security.struct.Setup;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleGroup;
@@ -33,6 +37,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextBoundsType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.scene.layout.StackPane;
+import javafx.scene.control.Label;
 
 @SuppressWarnings("restriction")
 public class UserInterface extends Application{
@@ -93,8 +99,7 @@ public class UserInterface extends Application{
         
         VBox mainVbox = new VBox();
         mainVbox.getChildren().add(minclose);
-        mainVbox.setSpacing(10);
-        //mainVbox.setPadding(new Insets(20, 0, 0, 60));
+        mainVbox.setSpacing(20);
         mainVbox.setAlignment(Pos.TOP_CENTER);
         mainVbox.getChildren().addAll(title);
         
@@ -200,7 +205,8 @@ public class UserInterface extends Application{
         		JOptionPane.showMessageDialog(null, "No vulnerability selected!");
         	}
         	else{
-        		rootGroup.getChildren().removeAll(next, mainVbox);
+        		rootGroup.getChildren().remove(next);
+        		mainVbox.getChildren().removeAll(accordion);
         		Queries executor = new Queries();
         		new Thread(()->{
         			try {
@@ -210,10 +216,69 @@ public class UserInterface extends Application{
 						e.printStackTrace();
 					}        			
         		}).start();
+        		nextScreen(mainVbox);
+        		
         	}
 
         });
         stage.show();
+	}
+
+	private void nextScreen(VBox mainVbox) {
+		
+		StackPane progressIndicator = new StackPane();
+		
+        ProgressIndicator p1 = new ProgressIndicator();
+        p1.setPrefSize(100, 100);
+        p1.setVisible(true);
+        
+        ProgressIndicator p2 = new ProgressIndicator();
+        p2.setPrefSize(100, 100);
+        p2.setProgress(1.0F);
+        p2.setVisible(false);
+        p2.setOnMouseEntered((Event event)->{p2.setOpacity(0.3);});
+        p2.setOnMouseExited((Event event)->{p2.setOpacity(1);});
+        p2.setOnMouseClicked((Event event)->{System.exit(0);});
+        
+        progressIndicator.getChildren().addAll(p1,p2);
+        
+        ProgressBar progress_query = new ProgressBar();
+        progress_query.setProgress(0);
+        progress_query.setPrefWidth(350);
+        
+        ProgressBar progress_overall = new ProgressBar();
+        progress_overall.setProgress(0);
+        progress_overall.setPrefWidth(350);
+        
+        HBox progress = new HBox(10);
+        VBox left = new VBox(10);
+        VBox right = new VBox(5);
+        Text t1 = new Text("Querys:");
+        t1.setFill(Color.WHITE);
+        Text t2 = new Text("Overall:");
+        t2.setFill(Color.WHITE);
+        left.getChildren().addAll(t1,t2);
+        right.getChildren().addAll(progress_query,progress_overall);
+        progress.getChildren().addAll(left,right);
+        
+        mainVbox.getChildren().addAll(progressIndicator,progress);
+        mainVbox.setPadding(new Insets(0, 0, 0, 20));
+        Text information = new Text("Output:"+Queries.PATH);
+        information.setFill(Color.WHITE);
+        mainVbox.getChildren().add(information);
+        information.setVisible(false);
+
+        new Thread(()->{
+        	while(Setup.progressOverall!=1){
+				try {Thread.currentThread();
+					Thread.sleep(100);} catch (InterruptedException e) {}
+				progress_query.setProgress(Setup.progressQuery);
+				progress_overall.setProgress(Setup.progressOverall);
+        	}
+        	p1.setVisible(false);
+            p2.setVisible(true);
+		}).start();
+        information.setVisible(true);
 	}
 
 }

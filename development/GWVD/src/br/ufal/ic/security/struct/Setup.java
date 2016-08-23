@@ -8,6 +8,8 @@ public class Setup {
 	public static String CROSS_VALIDATION;
 	public static String GRANULARITY;
 	public static String[] PROJECTS;
+	public static float progressQuery = 0;
+	public static float progressOverall = 0;
 	
 	private static HashMap<String, String[]>  buildModules() {
 		HashMap<String, String[]> moludes = new HashMap<>();
@@ -55,4 +57,11 @@ public class Setup {
 		return iterator.get(project);
 	}
 	
+	public static int numberQuerys(){
+		int out=0;
+		for (String project : PROJECTS) {
+			out+=getReleases(project).length*getModules(project).size();
+		}
+		return out;
+	}
 }
