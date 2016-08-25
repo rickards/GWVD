@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 public class Instance {
 	
+	private String[] attributes;
 	private HashMap<String, String> hash;
 	
 	public Instance(String[] attributes) {
@@ -11,6 +12,7 @@ public class Instance {
 		for (String key : attributes) {
 			hash.put(key, "");
 		}
+		this.attributes=attributes;
 	}
 	
 	public String get(String key){
@@ -24,7 +26,7 @@ public class Instance {
 	@Override
 	public String toString() {
 		String tuple="";
-		for (String iterable : hash.keySet()) {
+		for (String iterable : attributes) {
 			tuple+=hash.get(iterable)+",";
 		}
 		tuple+="&%$";

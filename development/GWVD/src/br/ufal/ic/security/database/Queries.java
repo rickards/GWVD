@@ -2,6 +2,8 @@ package br.ufal.ic.security.database;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -83,9 +85,24 @@ public class Queries {
 	}
 	
 	public void executeQuery(String query, String nameFileOutput) throws IOException{
+		
 		nameFileOutput = nameFileOutput.replace("/", "->");
-		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
+		
 		StringBuilder instances = new StringBuilder();
+		
+		FileReader fr = null;
+		try {
+			fr = new FileReader(PATH+nameFileOutput+".csv");
+			fr.close();
+		} catch (FileNotFoundException e1) {
+			Instance output = new Instance(metrics);
+        	for (String metric : metrics) {
+        		output.put(metric, metric);
+			}
+        	instances.append(output.toString());
+		}
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
 		java.sql.Connection conector = null;
         try {
             conector = DriverManager.getConnection("jdbc:mysql://localhost/software", "root", "admin");
@@ -120,7 +137,7 @@ public class Queries {
                 ex.printStackTrace();
             }
         }
-		bw.write(instances + "\n");
+		bw.write(instances + "");
 		bw.close();
 	}
 	
