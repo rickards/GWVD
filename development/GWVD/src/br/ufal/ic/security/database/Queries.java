@@ -135,12 +135,14 @@ public class Queries {
 		} catch (FileNotFoundException e1) {
 			File file = new File(PATH+nameFileOutput+".csv");
 			FileWriter fw = new FileWriter(file);
-			fw.close();
+			BufferedWriter b = new BufferedWriter(fw);
 			Instance output = new Instance(metrics);
         	for (String metric : metrics) {
         		output.put(metric, metric);
 			}
-        	instances.append(output.toString());
+        	b.write(output.toString());
+        	b.close();
+        	fw.close();
 		}
 		
 		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
