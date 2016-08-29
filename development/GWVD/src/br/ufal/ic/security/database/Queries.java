@@ -17,7 +17,7 @@ public class Queries {
 	
 	private String[] metrics;
 	private String id_table;
-	public static String PATH = "/home/rique/GWVD/outputs/";
+	public static String PATH = "/home/easy/GWVD/outputs/";
 	
 	public Queries() {
 		buildingMetrics();
@@ -72,8 +72,9 @@ public class Queries {
 					String vulnerableQuery = query_vul+" FROM "+module+" as tb, software.PATCHES AS p, software.VULNERABILITIES AS VULNERABILITIES where tb.Patched=1 and tb.Occurrence='before' and p.P_ID=tb.P_ID AND p.V_ID=VULNERABILITIES.V_ID "+or_vulnerability+" and p.RELEASES like '%"+release+"%';";
 					System.out.println(neutralQuery);
 					System.out.println(vulnerableQuery);
-					executeQuery(vulnerableQuery,project+"_"+release);
-					executeQuery(neutralQuery,project+"_"+release);
+					if(executeQuery(vulnerableQuery,project+"_"+release)){
+						executeQuery(neutralQuery,project+"_"+release);
+					}
 					count++;
 					Setup.progressOverall=count/numberQuerys;
 				}
@@ -84,28 +85,15 @@ public class Queries {
 		System.out.println(Setup.progressQuery);
 	}
 	
-	public void executeQuery(String query, String nameFileOutput) throws IOException{
+	public boolean executeQuery(String query, String nameFileOutput) throws IOException{
 		
 		nameFileOutput = nameFileOutput.replace("/", "->");
 		
 		StringBuilder instances = new StringBuilder();
 		
-		FileReader fr = null;
-		try {
-			fr = new FileReader(PATH+nameFileOutput+".csv");
-			fr.close();
-		} catch (FileNotFoundException e1) {
-			Instance output = new Instance(metrics);
-        	for (String metric : metrics) {
-        		output.put(metric, metric);
-			}
-        	instances.append(output.toString());
-		}
-		
-		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
 		java.sql.Connection conector = null;
         try {
-            conector = DriverManager.getConnection("jdbc:mysql://localhost/software", "root", "admin");
+            conector = DriverManager.getConnection("jdbc:mysql://localhost/software", "root", "root");
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
@@ -117,6 +105,7 @@ public class Queries {
             int total = rs.getRow();
             rs.beforeFirst();
             System.out.println(total);
+            if(total==0) return false;
             while (rs.next()) {
             	Instance output = new Instance(metrics);
             	for (String metric : metrics) {
@@ -137,8 +126,27 @@ public class Queries {
                 ex.printStackTrace();
             }
         }
+        
+        //writing in file
+        FileReader fr = null;
+		try {
+			fr = new FileReader(PATH+nameFileOutput+".csv");
+			fr.close();
+		} catch (FileNotFoundException e1) {
+			File file = new File(PATH+nameFileOutput+".csv");
+			FileWriter fw = new FileWriter(file);
+			fw.close();
+			Instance output = new Instance(metrics);
+        	for (String metric : metrics) {
+        		output.put(metric, metric);
+			}
+        	instances.append(output.toString());
+		}
+		
+		BufferedWriter bw = new BufferedWriter(new FileWriter(PATH+nameFileOutput+".csv", true));
 		bw.write(instances + "");
 		bw.close();
+		return true;
 	}
 	
 	
