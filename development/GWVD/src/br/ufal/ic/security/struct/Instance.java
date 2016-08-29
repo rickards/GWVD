@@ -30,6 +30,9 @@ public class Instance {
 			tuple+=hash.get(iterable)+",";
 		}
 		tuple+="&%$";
+		
+		tuple = tuple.replace(",1,&%$", ",VULNERABLE,&%$");
+		tuple = tuple.replace(",0,&%$", ",NEUTRAL,&%$");
 		return tuple.replace(",&%$", "\n");
 	}
 }
